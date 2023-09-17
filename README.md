@@ -1,4 +1,4 @@
-# Obsidian Copy Paste Enhancer Plugin
+# Obsidian Copy-Paste Enhancer Plugin
 
 ### Implemented features:
 
