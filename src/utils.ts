@@ -53,3 +53,21 @@ export function convertObsidianToPlainMarkdown(content: string): string {
 
 	return content;
 }
+
+export function stripNonStructuralStylingExceptFontStyle(content: string): string {
+	return content.replace(/style="([^"]*)"/g, (match, styleContent) => {
+		const retainedStyles = [];
+
+		const fontWeightMatch = styleContent.match(/font-weight:bold/);
+		if (fontWeightMatch) {
+			retainedStyles.push(fontWeightMatch[0]);
+		}
+
+		const fontStyleMatch = styleContent.match(/font-style:italic/);
+		if (fontStyleMatch) {
+			retainedStyles.push(fontStyleMatch[0]);
+		}
+
+		return retainedStyles.length ? `style="${retainedStyles.join(';')}"` : '';
+	});
+}

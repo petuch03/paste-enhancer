@@ -1,5 +1,9 @@
 import {Editor, Plugin} from 'obsidian';
-import {adjustNumberedContent, convertObsidianToPlainMarkdown} from "./utils";
+import {
+	adjustNumberedContent,
+	convertObsidianToPlainMarkdown,
+	stripNonStructuralStylingExceptFontStyle
+} from "./utils";
 
 export default class CopyPasteEnhancer extends Plugin {
 	async onload() {
@@ -16,9 +20,12 @@ export default class CopyPasteEnhancer extends Plugin {
 			name: 'Copy Plain Markdown',
 			callback: this.copyPlainMarkdown.bind(this),
 		});
-	}
 
-	async onunload() {
+		this.addCommand({
+			id: 'copy-structural-formatting',
+			name: 'Copy Only Structural Formatting',
+			callback: this.copyStructuralFormatting.bind(this),
+		});
 	}
 
 	async pasteAdjustedContent() {
@@ -54,6 +61,24 @@ export default class CopyPasteEnhancer extends Plugin {
 			console.log("Copied plain markdown to clipboard");
 		} catch (error) {
 			console.error("Error copying plain markdown to clipboard:", error);
+		}
+	}
+
+	async copyStructuralFormatting() {
+		const editor: Editor | undefined = this.app.workspace.activeEditor?.editor;
+		if (!editor) return;
+
+		const doc: Editor = editor.getDoc();
+		const selectedContent: string = doc.getSelection();
+
+		const plainMarkdown: string = convertObsidianToPlainMarkdown(selectedContent);
+		const structuralContent: string = stripNonStructuralStylingExceptFontStyle(plainMarkdown);
+
+		try {
+			await navigator.clipboard.writeText(structuralContent);
+			console.log("Copied structural formatting to clipboard");
+		} catch (error) {
+			console.error("Error copying structural formatting to clipboard:", error);
 		}
 	}
 }
