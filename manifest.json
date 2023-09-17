@@ -1,6 +1,6 @@
 {
-	"id": "paste-enhancer",
-	"name": "Paste Enhancer",
+	"id": "copy-paste-enhancer",
+	"name": "Copy-Paste Enhancer",
 	"version": "1.0.0",
 	"minAppVersion": "0.15.0",
 	"description": "This is a plugin for Obsidian which enhances and simplifies paste process.",
