@@ -25,9 +25,6 @@ export function adjustNumberedContent(content: string, editor: Editor): string {
 		}
 	}
 
-	console.log(`lastNumber ${lastNumber}`);
-	console.log(`lastIndentation '${lastIndentation}'`);
-
 	if (lastNumber !== null) {
 		const linesFromClipboard: string[] = content.split('\n');
 		const adjustedLines = [];
@@ -45,6 +42,14 @@ export function adjustNumberedContent(content: string, editor: Editor): string {
 
 		content = adjustedLines.join('\n');
 	}
+
+	return content;
+}
+
+export function convertObsidianToPlainMarkdown(content: string): string {
+	// Convert wikilinks [[link]] to [link](link)
+	// List of obsidian specific markdown features: https://www.markdownguide.org/tools/obsidian/
+	content = content.replace(/\[\[([^\]]+)\]\]/g, (_, link) => `[${link}](${link})`);
 
 	return content;
 }
