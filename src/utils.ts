@@ -1,19 +1,30 @@
-import {Editor} from "obsidian";
-import * as CodeMirror from "codemirror";
+import {Editor, EditorPosition} from "obsidian";
+
+const numberedIndexMatcher  = /^(\s*)(\d+)\./
 
 export function adjustNumberedContent(content: string, editor: Editor): string {
-	const doc : Editor = editor.getDoc();
-	const cursorPosition : CodeMirror.Position = doc.getCursor();
-	const linesBeforeCursor : string[] = doc.getRange({ line: 0, ch: 0 }, cursorPosition).split('\n');
+	const doc: Editor = editor.getDoc();
+	const cursorPosition: EditorPosition = doc.getCursor();
+	const linesBeforeCursor: string[] = doc.getRange({line: 0, ch: 0}, cursorPosition).split('\n');
+	const currentLine: string = linesBeforeCursor[linesBeforeCursor.length - 1];
 
 	let lastNumber = null;
-	let lastIndentation  = '';
-	for (let i : number = linesBeforeCursor.length - 1; i >= 0; i--) {
-		const match : RegExpMatchArray | null = linesBeforeCursor[i].match(/^(\s*)(\d+)\./);
-		if (match) {
-			lastIndentation = match[1];
-			lastNumber = parseInt(match[2]);
-			break;
+	let lastIndentation = '';
+	let isPastingAfterNumber = false;
+
+	const currentLineMatch: RegExpMatchArray | null = currentLine.match(numberedIndexMatcher);
+	if (currentLineMatch) {
+		lastIndentation = currentLineMatch[1];
+		lastNumber = parseInt(currentLineMatch[2]);
+		isPastingAfterNumber = true;
+	} else {
+		for (let i = linesBeforeCursor.length - 1; i >= 0; i--) {
+			const match: RegExpMatchArray | null = linesBeforeCursor[i].match(numberedIndexMatcher);
+			if (match) {
+				lastIndentation = match[1];
+				lastNumber = parseInt(match[2]);
+				break;
+			}
 		}
 	}
 
@@ -21,13 +32,18 @@ export function adjustNumberedContent(content: string, editor: Editor): string {
 		const linesFromClipboard : string[] = content.split('\n');
 		const adjustedLines = [];
 
-		for (const line of linesFromClipboard) {
-			const matchResult = line.match(/^\s*/);
-			const currentIndentation = matchResult ? matchResult[0] : '';
+		for (let i = 0; i < linesFromClipboard.length; i++) {
+			const line = linesFromClipboard[i];
+			const currentIndentationMatch = line.match(/^\s*/);
+			const currentIndentation = currentIndentationMatch ? currentIndentationMatch[0] : '';
 
 			if (currentIndentation === lastIndentation) {
-				lastNumber++;
-				adjustedLines.push(`${lastIndentation}${lastNumber}. ${line.trim().replace(/^\d+\.\s*/, '')}`);
+				if (isPastingAfterNumber && i === 0) {
+					adjustedLines.push(`${line.trim().replace(/^\d+\.\s*/, '')}`);
+				} else {
+					lastNumber++;
+					adjustedLines.push(`${lastIndentation}${lastNumber}. ${line.trim().replace(/^\d+\.\s*/, '')}`);
+				}
 			} else {
 				adjustedLines.push(line);
 			}
